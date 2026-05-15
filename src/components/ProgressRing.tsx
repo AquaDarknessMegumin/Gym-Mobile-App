@@ -11,66 +11,53 @@ interface Props {
 }
 
 export const ProgressRing = ({ current, total, label }: Props) => {
-  const size = 240;
-  const strokeWidth = 24;
-  const radius = (size - strokeWidth) / 2;
-  const cx = size / 2;
-  const cy = size / 2;
-  
-  // Angle for semi-circle
-  const sweepAngle = 180;
-  const startAngle = 180;
-  const endAngle = 360;
+  const width = 240;
+  const height = 130;
+  const strokeWidth = 20;
+  const radius = 90;
+  const cx = width / 2;
+  const cy = height - 10;
 
-  // Convert angle to coordinates
-  const polarToCartesian = (centerX: number, centerY: number, radius: number, angleInDegrees: number) => {
-    const angleInRadians = (angleInDegrees - 180) * Math.PI / 180.0;
-    return {
-      x: centerX + (radius * Math.cos(angleInRadians)),
-      y: centerY + (radius * Math.sin(angleInRadians))
-    };
-  };
-
-  const createArcPath = (x: number, y: number, r: number, startA: number, endA: number) => {
-    const start = polarToCartesian(x, y, r, endA);
-    const end = polarToCartesian(x, y, r, startA);
-    const largeArcFlag = endA - startA <= 180 ? "0" : "1";
-    return [
-      "M", start.x, start.y, 
-      "A", r, r, 0, largeArcFlag, 0, end.x, end.y
-    ].join(" ");
-  };
-
-  const backgroundPath = createArcPath(cx, cy, radius, startAngle, endAngle);
-  
   const percentage = Math.min(Math.max(current / total, 0), 1);
-  const progressAngle = startAngle + (sweepAngle * Math.max(percentage, 0.01));
-  const foregroundPath = createArcPath(cx, cy, radius, startAngle, progressAngle);
+
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+
+  const getPoint = (angle: number) => ({
+    x: cx + radius * Math.cos(toRad(angle)),
+    y: cy + radius * Math.sin(toRad(angle)),
+  });
+
+  const start = getPoint(180);
+  const bgEnd = getPoint(0);
+
+  const progressDeg = 180 * Math.max(percentage, 0.01);
+  const progressEnd = getPoint(180 + progressDeg);
+
+  const bgPath = `M ${start.x} ${start.y} A ${radius} ${radius} 0 0 1 ${bgEnd.x} ${bgEnd.y}`;
+  const fgPath = `M ${start.x} ${start.y} A ${radius} ${radius} 0 0 1 ${progressEnd.x} ${progressEnd.y}`;
 
   return (
     <View style={styles.container}>
-      <Svg width={size} height={size / 2 + strokeWidth} viewBox={`0 0 ${size} ${size / 2 + strokeWidth}`}>
+      <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
         <Path
-          d={backgroundPath}
+          d={bgPath}
           fill="none"
           stroke="#E5E5EA"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
         />
-        {percentage > 0 && (
-          <Path
-            d={foregroundPath}
-            fill="none"
-            stroke={Colors.primary}
-            strokeWidth={strokeWidth}
-            strokeLinecap="round"
-          />
-        )}
+        <Path
+          d={fgPath}
+          fill="none"
+          stroke={Colors.primary}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+        />
       </Svg>
       <View style={styles.textContainer}>
-        <Text style={[Typography.bodySecondary, styles.label]}>{label}</Text>
-        <Text style={[Typography.header1, styles.current]}>{current.toLocaleString()}</Text>
-        <Text style={Typography.bodySecondary}>of {total.toLocaleString()} total</Text>
+        <Text style={styles.label}>{label}</Text>
+        <Text style={styles.current}>{current.toLocaleString()}</Text>
+        <Text style={styles.of}>of {total.toLocaleString()} total</Text>
       </View>
     </View>
   );
@@ -79,10 +66,8 @@ export const ProgressRing = ({ current, total, label }: Props) => {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    height: 140, 
-    marginTop: 16,
+    height: 160,
+    marginTop: 8,
   },
   textContainer: {
     position: 'absolute',
@@ -90,12 +75,19 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   label: {
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '600',
     color: '#000',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   current: {
-    fontSize: 32,
-    marginBottom: 2,
+    fontSize: 30,
+    fontWeight: '700',
+    color: '#000',
+    lineHeight: 34,
+  },
+  of: {
+    fontSize: 12,
+    color: '#8E8E93',
   },
 });
