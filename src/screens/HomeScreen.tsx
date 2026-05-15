@@ -41,6 +41,37 @@ export const HomeScreen = ({ navigation }: any) => {
     return m > 0 ? `${hrs}h ${m}m` : `${hrs}h`;
   };
 
+  const getWeeklyStreak = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+    const startOfWeek = new Date(today);
+    const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    startOfWeek.setDate(today.getDate() - mondayOffset);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const workedDays = new Set<number>();
+    workouts.forEach((w: any) => {
+      const wDate = new Date(w.date);
+      if (wDate >= startOfWeek && wDate <= today) {
+        const diff = Math.floor((wDate.getTime() - startOfWeek.getTime()) / 86400000);
+        workedDays.add(diff);
+      }
+    });
+
+    const todayIndex = mondayOffset;
+    let streak = 0;
+    for (let i = 0; i <= todayIndex; i++) {
+      if (workedDays.has(i)) streak++;
+      else streak = 0;
+    }
+
+    return { days, workedDays, streak };
+  };
+
+  const { days, workedDays, streak } = getWeeklyStreak();
+
   return (
     <ScreenWrapper style={styles.container}>
       {/* Header */}
@@ -61,22 +92,22 @@ export const HomeScreen = ({ navigation }: any) => {
 
         {/* Quick Stats */}
         <View style={styles.quickStats}>
-          <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: 'rgba(124, 58, 237, 0.1)' }]}>
+          <View style={[styles.statCard, { backgroundColor: 'rgba(99, 56, 171, 0.1)' }]}>
+            <View style={[styles.statIcon, { backgroundColor: 'rgba(99, 56, 171, 0.15)' }]}>
               <Ionicons name="flame-outline" size={22} color={Colors.primary} />
             </View>
             <Text style={styles.statValue}>{weeklyGoals.calories}</Text>
             <Text style={styles.statLabel}>Calories</Text>
           </View>
-          <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: 'rgba(34, 197, 94, 0.1)' }]}>
+          <View style={[styles.statCard, { backgroundColor: 'rgba(34, 197, 94, 0.1)' }]}>
+            <View style={[styles.statIcon, { backgroundColor: 'rgba(34, 197, 94, 0.15)' }]}>
               <Ionicons name="barbell-outline" size={22} color="#22C55E" />
             </View>
             <Text style={styles.statValue}>{weeklyGoals.workouts}</Text>
             <Text style={styles.statLabel}>Workouts</Text>
           </View>
-          <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
+          <View style={[styles.statCard, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
+            <View style={[styles.statIcon, { backgroundColor: 'rgba(59, 130, 246, 0.15)' }]}>
               <Ionicons name="time-outline" size={22} color="#3B82F6" />
             </View>
             <Text style={styles.statValue}>{formatDuration(weeklyGoals.duration)}</Text>
@@ -88,13 +119,13 @@ export const HomeScreen = ({ navigation }: any) => {
         <Text style={[Typography.header2, styles.sectionTitle]}>Quick Start</Text>
         <View style={styles.quickActions}>
           <TouchableOpacity 
-            style={styles.quickActionCard} 
+            style={[styles.quickActionCard, { backgroundColor: Colors.primary }]} 
             onPress={() => navigation.navigate('Workout')}
           >
-            <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(124, 58, 237, 0.1)' }]}>
-              <Ionicons name="add-circle" size={28} color={Colors.primary} />
+            <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(255, 255, 255, 0.2)' }]}>
+              <Ionicons name="add-circle" size={28} color="#fff" />
             </View>
-            <Text style={styles.quickActionText}>New Workout</Text>
+            <Text style={[styles.quickActionText, { color: '#fff' }]}>New Workout</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.quickActionCard} 
@@ -107,6 +138,29 @@ export const HomeScreen = ({ navigation }: any) => {
           </TouchableOpacity>
         </View>
 
+        {/* This Week Streak */}
+        <Card style={styles.streakCard}>
+          <View style={styles.streakHeader}>
+            <Text style={styles.streakTitle}>This week</Text>
+            <Text style={styles.streakBadge}>{streak} day streak 🔥</Text>
+          </View>
+          <View style={styles.streakDays}>
+            {days.map((day, index) => (
+              <View key={index} style={styles.streakDayItem}>
+                <View style={[
+                  styles.streakDayCircle,
+                  workedDays.has(index) ? styles.streakDayDone : styles.streakDayEmpty,
+                ]}>
+                  {workedDays.has(index) && (
+                    <Ionicons name="checkmark" size={16} color="#fff" />
+                  )}
+                </View>
+                <Text style={styles.streakDayLabel}>{day}</Text>
+              </View>
+            ))}
+          </View>
+        </Card>
+
         {/* Recent Activity */}
         <Text style={[Typography.header2, styles.sectionTitle]}>Recent Activity</Text>
 
@@ -118,7 +172,7 @@ export const HomeScreen = ({ navigation }: any) => {
             </Text>
           </Card>
         ) : (
-          workouts.slice(0, 10).map((w) => (
+          workouts.slice(0, 10).map((w: any) => (
             <Card key={w.id} style={styles.workoutCard}>
               <View style={styles.workoutHeader}>
                 <View style={styles.workoutIcon}>
@@ -134,16 +188,16 @@ export const HomeScreen = ({ navigation }: any) => {
               </View>
               <View style={styles.workoutStats}>
                 <View style={styles.workoutStatItem}>
-                  <Ionicons name="time-outline" size={14} color={Colors.textSecondary} />
-                  <Text style={[Typography.bodySecondary, { marginLeft: 4 }]}>{w.duration}min</Text>
+                  <Ionicons name="time-outline" size={14} color={Colors.primary} />
+                  <Text style={[Typography.bodySecondary, { marginLeft: 4, color: Colors.primary }]}>{w.duration}min</Text>
                 </View>
                 <View style={styles.workoutStatItem}>
-                  <Ionicons name="flame-outline" size={14} color={Colors.textSecondary} />
-                  <Text style={[Typography.bodySecondary, { marginLeft: 4 }]}>{w.calories} kcal</Text>
+                  <Ionicons name="flame-outline" size={14} color="#F59E0B" />
+                  <Text style={[Typography.bodySecondary, { marginLeft: 4, color: '#F59E0B' }]}>{w.calories} kcal</Text>
                 </View>
                 <View style={styles.workoutStatItem}>
-                  <Ionicons name="trending-up-outline" size={14} color={Colors.textSecondary} />
-                  <Text style={[Typography.bodySecondary, { marginLeft: 4 }]}>{w.volume.toLocaleString()}</Text>
+                  <Ionicons name="trending-up-outline" size={14} color="#22C55E" />
+                  <Text style={[Typography.bodySecondary, { marginLeft: 4, color: '#22C55E' }]}>{w.volume.toLocaleString()}</Text>
                 </View>
               </View>
             </Card>
@@ -177,18 +231,7 @@ const styles = StyleSheet.create({
 
   // Quick Stats
   quickStats: { flexDirection: 'row', gap: 12, marginBottom: 28 },
-  statCard: {
-    flex: 1,
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 1,
-  },
+  statCard: { flex: 1, borderRadius: 16, padding: 16, alignItems: 'center' },
   statIcon: {
     width: 44, height: 44, borderRadius: 22,
     alignItems: 'center', justifyContent: 'center',
@@ -218,6 +261,26 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   quickActionText: { fontSize: 14, fontWeight: '600', color: Colors.text },
+
+  // Streak Card
+  streakCard: { padding: 20, marginBottom: 28 },
+  streakHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  streakTitle: { fontSize: 16, fontWeight: '700', color: Colors.text },
+  streakBadge: { fontSize: 14, fontWeight: '600', color: Colors.primary },
+  streakDays: { flexDirection: 'row', justifyContent: 'space-between' },
+  streakDayItem: { alignItems: 'center', gap: 6 },
+  streakDayCircle: {
+    width: 40, height: 40, borderRadius: 20,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  streakDayDone: { backgroundColor: Colors.primary },
+  streakDayEmpty: { backgroundColor: 'rgba(0,0,0,0.07)' },
+  streakDayLabel: { fontSize: 12, color: Colors.textSecondary, marginTop: 4 },
 
   // Workout Cards
   emptyCard: { alignItems: 'center', padding: 40 },
