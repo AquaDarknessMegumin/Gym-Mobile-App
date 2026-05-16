@@ -6,12 +6,15 @@ import { Card } from '../components/Card';
 import { Typography } from '../constants/typography';
 import { Colors } from '../constants/colors';
 import { DataContext } from '../context/DataContext';
+import { AuthContext } from '../context/AuthContext';
 
 export const HomeScreen = ({ navigation }: any) => {
-  const { workouts, weeklyGoals } = useContext(DataContext) || { 
-    workouts: [], 
-    weeklyGoals: { calories: 0, workouts: 0, duration: 0, volume: 0 } 
+  const { workouts, weeklyGoals } = useContext(DataContext) || {
+    workouts: [],
+    weeklyGoals: { calories: 0, workouts: 0, duration: 0, volume: 0 }
   };
+  const { user } = useContext(AuthContext) || { user: null };
+  const username = user?.username || 'User';
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -41,125 +44,67 @@ export const HomeScreen = ({ navigation }: any) => {
     return m > 0 ? `${hrs}h ${m}m` : `${hrs}h`;
   };
 
-  const getWeeklyStreak = () => {
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
-    const startOfWeek = new Date(today);
-    const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    startOfWeek.setDate(today.getDate() - mondayOffset);
-    startOfWeek.setHours(0, 0, 0, 0);
-
-    const workedDays = new Set<number>();
-    workouts.forEach((w: any) => {
-      const wDate = new Date(w.date);
-      if (wDate >= startOfWeek && wDate <= today) {
-        const diff = Math.floor((wDate.getTime() - startOfWeek.getTime()) / 86400000);
-        workedDays.add(diff);
-      }
-    });
-
-    const todayIndex = mondayOffset;
-    let streak = 0;
-    for (let i = 0; i <= todayIndex; i++) {
-      if (workedDays.has(i)) streak++;
-      else streak = 0;
-    }
-
-    return { days, workedDays, streak };
-  };
-
-  const { days, workedDays, streak } = getWeeklyStreak();
-
   return (
     <ScreenWrapper style={styles.container}>
-      {/* Header */}
+
+      {/* Dark Purple Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>{getGreeting()} 💪</Text>
+          <Text style={styles.greeting}>{getGreeting()}</Text>
+          <Text style={styles.username}>{username} 💪</Text>
           <Text style={styles.subtitle}>Let's crush your goals today</Text>
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.calendarBtn}
           onPress={() => navigation.navigate('Calendar')}
         >
-          <Ionicons name="calendar-outline" size={22} color={Colors.primary} />
+          <Ionicons name="calendar-outline" size={20} color="#fff" />
         </TouchableOpacity>
+      </View>
+
+      {/* Stat Cards inside header */}
+      <View style={styles.statsRow}>
+        <View style={styles.statCard}>
+          <Ionicons name="flame-outline" size={18} color="#FFB347" />
+          <Text style={styles.statValue}>{weeklyGoals.calories}</Text>
+          <Text style={styles.statLabel}>Calories</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Ionicons name="barbell-outline" size={18} color="#7DD3FC" />
+          <Text style={styles.statValue}>{weeklyGoals.workouts}</Text>
+          <Text style={styles.statLabel}>Workouts</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Ionicons name="time-outline" size={18} color="#86EFAC" />
+          <Text style={styles.statValue}>{formatDuration(weeklyGoals.duration)}</Text>
+          <Text style={styles.statLabel}>Duration</Text>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-        {/* Quick Stats */}
-        <View style={styles.quickStats}>
-          <View style={[styles.statCard, { backgroundColor: 'rgba(99, 56, 171, 0.1)' }]}>
-            <View style={[styles.statIcon, { backgroundColor: 'rgba(99, 56, 171, 0.15)' }]}>
-              <Ionicons name="flame-outline" size={22} color={Colors.primary} />
-            </View>
-            <Text style={styles.statValue}>{weeklyGoals.calories}</Text>
-            <Text style={styles.statLabel}>Calories</Text>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: 'rgba(34, 197, 94, 0.1)' }]}>
-            <View style={[styles.statIcon, { backgroundColor: 'rgba(34, 197, 94, 0.15)' }]}>
-              <Ionicons name="barbell-outline" size={22} color="#22C55E" />
-            </View>
-            <Text style={styles.statValue}>{weeklyGoals.workouts}</Text>
-            <Text style={styles.statLabel}>Workouts</Text>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
-            <View style={[styles.statIcon, { backgroundColor: 'rgba(59, 130, 246, 0.15)' }]}>
-              <Ionicons name="time-outline" size={22} color="#3B82F6" />
-            </View>
-            <Text style={styles.statValue}>{formatDuration(weeklyGoals.duration)}</Text>
-            <Text style={styles.statLabel}>Duration</Text>
-          </View>
-        </View>
-
         {/* Quick Actions */}
         <Text style={[Typography.header2, styles.sectionTitle]}>Quick Start</Text>
         <View style={styles.quickActions}>
-          <TouchableOpacity 
-            style={[styles.quickActionCard, { backgroundColor: Colors.primary }]} 
+          <TouchableOpacity
+            style={[styles.quickActionCard, { backgroundColor: Colors.primary }]}
             onPress={() => navigation.navigate('Workout')}
           >
-            <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(255, 255, 255, 0.2)' }]}>
+            <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
               <Ionicons name="add-circle" size={28} color="#fff" />
             </View>
             <Text style={[styles.quickActionText, { color: '#fff' }]}>New Workout</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.quickActionCard} 
+          <TouchableOpacity
+            style={styles.quickActionCard}
             onPress={() => navigation.navigate('Workout')}
           >
-            <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(245, 158, 11, 0.1)' }]}>
+            <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(245,158,11,0.1)' }]}>
               <Ionicons name="clipboard-outline" size={28} color="#F59E0B" />
             </View>
             <Text style={styles.quickActionText}>My Routines</Text>
           </TouchableOpacity>
         </View>
-
-        {/* This Week Streak */}
-        <Card style={styles.streakCard}>
-          <View style={styles.streakHeader}>
-            <Text style={styles.streakTitle}>This week</Text>
-            <Text style={styles.streakBadge}>{streak} day streak 🔥</Text>
-          </View>
-          <View style={styles.streakDays}>
-            {days.map((day, index) => (
-              <View key={index} style={styles.streakDayItem}>
-                <View style={[
-                  styles.streakDayCircle,
-                  workedDays.has(index) ? styles.streakDayDone : styles.streakDayEmpty,
-                ]}>
-                  {workedDays.has(index) && (
-                    <Ionicons name="checkmark" size={16} color="#fff" />
-                  )}
-                </View>
-                <Text style={styles.streakDayLabel}>{day}</Text>
-              </View>
-            ))}
-          </View>
-        </Card>
 
         {/* Recent Activity */}
         <Text style={[Typography.header2, styles.sectionTitle]}>Recent Activity</Text>
@@ -168,11 +113,11 @@ export const HomeScreen = ({ navigation }: any) => {
           <Card style={styles.emptyCard}>
             <Ionicons name="fitness-outline" size={48} color="#E5E5EA" />
             <Text style={[Typography.bodySecondary, { marginTop: 12, textAlign: 'center' }]}>
-              No workouts yet. Start your first workout to see your activity here!
+              No workouts yet. Start your first workout!
             </Text>
           </Card>
         ) : (
-          workouts.slice(0, 10).map((w: any) => (
+          workouts.slice(0, 10).map((w) => (
             <Card key={w.id} style={styles.workoutCard}>
               <View style={styles.workoutHeader}>
                 <View style={styles.workoutIcon}>
@@ -210,38 +155,46 @@ export const HomeScreen = ({ navigation }: any) => {
 
 const styles = StyleSheet.create({
   container: { paddingHorizontal: 0 },
+
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    backgroundColor: '#3D1F7A',
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
-  greeting: { fontSize: 24, fontWeight: 'bold', color: Colors.text },
-  subtitle: { fontSize: 14, color: Colors.textSecondary, marginTop: 2 },
+  greeting: { fontSize: 13, color: 'rgba(255,255,255,0.7)', marginBottom: 2 },
+  username: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
+  subtitle: { fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
   calendarBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(124, 58, 237, 0.08)',
+    width: 34, height: 34, borderRadius: 17,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center', justifyContent: 'center',
   },
+
+  statsRow: {
+    backgroundColor: '#3D1F7A',
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+    gap: 8,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 12,
+    padding: 10,
+    alignItems: 'center',
+    gap: 3,
+  },
+  statValue: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  statLabel: { fontSize: 9, color: 'rgba(255,255,255,0.6)' },
+
   scrollContent: { padding: 16, paddingBottom: 40 },
-
-  // Quick Stats
-  quickStats: { flexDirection: 'row', gap: 12, marginBottom: 28 },
-  statCard: { flex: 1, borderRadius: 16, padding: 16, alignItems: 'center' },
-  statIcon: {
-    width: 44, height: 44, borderRadius: 22,
-    alignItems: 'center', justifyContent: 'center',
-    marginBottom: 10,
-  },
-  statValue: { fontSize: 20, fontWeight: 'bold', color: Colors.text },
-  statLabel: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
-
-  // Quick Actions
   sectionTitle: { marginBottom: 16 },
+
   quickActions: { flexDirection: 'row', gap: 12, marginBottom: 28 },
   quickActionCard: {
     flex: 1,
@@ -262,38 +215,17 @@ const styles = StyleSheet.create({
   },
   quickActionText: { fontSize: 14, fontWeight: '600', color: Colors.text },
 
-  // Streak Card
-  streakCard: { padding: 20, marginBottom: 28 },
-  streakHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  streakTitle: { fontSize: 16, fontWeight: '700', color: Colors.text },
-  streakBadge: { fontSize: 14, fontWeight: '600', color: Colors.primary },
-  streakDays: { flexDirection: 'row', justifyContent: 'space-between' },
-  streakDayItem: { alignItems: 'center', gap: 6 },
-  streakDayCircle: {
-    width: 40, height: 40, borderRadius: 20,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  streakDayDone: { backgroundColor: Colors.primary },
-  streakDayEmpty: { backgroundColor: 'rgba(0,0,0,0.07)' },
-  streakDayLabel: { fontSize: 12, color: Colors.textSecondary, marginTop: 4 },
-
-  // Workout Cards
   emptyCard: { alignItems: 'center', padding: 40 },
   workoutCard: { marginBottom: 12, padding: 16 },
   workoutHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   workoutIcon: {
     width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(124, 58, 237, 0.08)',
+    backgroundColor: 'rgba(124,58,237,0.08)',
     alignItems: 'center', justifyContent: 'center',
     marginRight: 12,
   },
   workoutBadge: {
-    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+    backgroundColor: 'rgba(124,58,237,0.1)',
     paddingHorizontal: 10, paddingVertical: 4,
     borderRadius: 8,
   },
