@@ -62,7 +62,7 @@ export const HomeScreen = ({ navigation }: any) => {
         </TouchableOpacity>
       </View>
 
-      {/* Stat Cards inside header */}
+      {/* Stat Cards */}
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
           <Ionicons name="flame-outline" size={18} color="#FFB347" />
@@ -82,6 +82,33 @@ export const HomeScreen = ({ navigation }: any) => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+
+        {/* Streak Bar */}
+        <Card style={styles.streakCard}>
+          <View style={styles.streakHeader}>
+            <Text style={styles.streakTitle}>This week</Text>
+            <Text style={styles.streakBadge}>🔥 streak</Text>
+          </View>
+          <View style={styles.streakDays}>
+            {['M','T','W','T','F','S','S'].map((day, i) => {
+              const d = new Date();
+              const dayOfWeek = d.getDay();
+              const mondayOffset = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek;
+              const targetDate = new Date(d);
+              targetDate.setDate(d.getDate() + mondayOffset + i);
+              const dateStr = targetDate.toISOString().split('T')[0];
+              const hasWorkout = workouts.some(w => new Date(w.date).toISOString().split('T')[0] === dateStr);
+              return (
+                <View key={i} style={styles.streakDayCol}>
+                  <View style={[styles.streakDot, { backgroundColor: hasWorkout ? Colors.primary : '#E5E5EA' }]}>
+                    {hasWorkout && <Ionicons name="checkmark" size={12} color="#fff" />}
+                  </View>
+                  <Text style={styles.streakDayLabel}>{day}</Text>
+                </View>
+              );
+            })}
+          </View>
+        </Card>
 
         {/* Quick Actions */}
         <Text style={[Typography.header2, styles.sectionTitle]}>Quick Start</Text>
@@ -194,6 +221,15 @@ const styles = StyleSheet.create({
 
   scrollContent: { padding: 16, paddingBottom: 40 },
   sectionTitle: { marginBottom: 16 },
+
+  streakCard: { marginBottom: 20, padding: 14 },
+  streakHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  streakTitle: { fontSize: 14, fontWeight: '700', color: Colors.text },
+  streakBadge: { fontSize: 11, fontWeight: '600', color: Colors.primary },
+  streakDays: { flexDirection: 'row', justifyContent: 'space-between' },
+  streakDayCol: { alignItems: 'center', gap: 4 },
+  streakDot: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  streakDayLabel: { fontSize: 9, color: '#8E8E93' },
 
   quickActions: { flexDirection: 'row', gap: 12, marginBottom: 28 },
   quickActionCard: {
