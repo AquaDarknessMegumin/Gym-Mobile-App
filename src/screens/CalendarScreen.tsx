@@ -7,7 +7,6 @@ import { DataContext } from '../context/DataContext';
 import { Typography } from '../constants/typography';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
-
 import { AlertModal } from '../components/AlertModal';
 
 export const CalendarScreen = () => {
@@ -37,25 +36,20 @@ export const CalendarScreen = () => {
     }
   };
 
-  // Transform workouts into marked dates format
   const markedDates: any = {};
   workouts.forEach(w => {
     const dateStr = new Date(w.date).toISOString().split('T')[0];
     markedDates[dateStr] = { marked: true, dotColor: Colors.primary };
   });
 
-  // Highlight the selected date
   if (markedDates[selectedDate]) {
     markedDates[selectedDate] = { ...markedDates[selectedDate], selected: true, selectedColor: Colors.primary };
   } else {
     markedDates[selectedDate] = { selected: true, selectedColor: Colors.primary };
   }
 
-  // Filter workouts by selected date
   const filteredWorkouts = workouts.filter(w => new Date(w.date).toISOString().split('T')[0] === selectedDate);
-
   const displayDate = new Date(selectedDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
-
   const [currentMonth, setCurrentMonth] = useState(new Date().toISOString().split('T')[0]);
 
   const changeYear = (offset: number) => {
@@ -123,10 +117,11 @@ export const CalendarScreen = () => {
         </Card>
 
         <Text style={[Typography.header2, styles.sectionTitle]}>Workouts on {displayDate}</Text>
-        
+
         {filteredWorkouts.length === 0 ? (
           <View style={styles.emptyState}>
-             <Text style={[Typography.body, { color: '#FF3B30', fontWeight: 'bold' }]}>No exercise logged on this date.</Text>
+            <Ionicons name="calendar-outline" size={32} color="#8E8E93" style={{ marginBottom: 8 }} />
+            <Text style={[Typography.body, { color: '#8E8E93' }]}>No exercise logged on this date.</Text>
           </View>
         ) : (
           filteredWorkouts.map((w) => (
@@ -154,7 +149,7 @@ export const CalendarScreen = () => {
 
       </ScrollView>
 
-      <AlertModal 
+      <AlertModal
         visible={!!workoutToDelete}
         title="Delete Workout"
         message="Are you sure you want to delete this workout record?"
@@ -178,10 +173,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: { padding: 16, paddingBottom: 40 },
   calendarCard: { padding: 0, overflow: 'hidden', marginBottom: 24 },
-  calendarHeader: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
+  calendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 8,
     paddingVertical: 4,
     width: '100%',
@@ -195,5 +190,5 @@ const styles = StyleSheet.create({
   historyHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   deleteIconBtn: { padding: 4, backgroundColor: 'rgba(255, 59, 48, 0.1)', borderRadius: 12 },
   statsRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
-  emptyState: { paddingVertical: 24, alignItems: 'center', backgroundColor: 'rgba(255, 59, 48, 0.1)', borderRadius: 12 }
+  emptyState: { paddingVertical: 24, alignItems: 'center', backgroundColor: 'rgba(142, 142, 147, 0.1)', borderRadius: 12 },
 });
