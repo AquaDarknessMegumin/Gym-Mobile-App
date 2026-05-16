@@ -83,8 +83,31 @@ export const HomeScreen = ({ navigation }: any) => {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-        {/* Streak Bar */}
-        <Card style={styles.streakCard}>
+        {/* Quick Actions */}
+        <Text style={[Typography.header2, styles.sectionTitle]}>Quick Start</Text>
+        <View style={styles.quickActions}>
+          <TouchableOpacity
+            style={[styles.quickActionCard, { backgroundColor: Colors.primary }]}
+            onPress={() => navigation.navigate('Workout')}
+          >
+            <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+              <Ionicons name="add-circle" size={28} color="#fff" />
+            </View>
+            <Text style={[styles.quickActionText, { color: '#fff' }]}>New Workout</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.quickActionCard}
+            onPress={() => navigation.navigate('Workout')}
+          >
+            <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(245,158,11,0.1)' }]}>
+              <Ionicons name="clipboard-outline" size={28} color="#F59E0B" />
+            </View>
+            <Text style={styles.quickActionText}>My Routines</Text>
+          </TouchableOpacity>
+        </View>
+
+                {/* Streak Bar */}
+                <Card style={styles.streakCard}>
           <View style={styles.streakHeader}>
             <Text style={styles.streakTitle}>This week</Text>
             <Text style={styles.streakBadge}>🔥 streak</Text>
@@ -109,29 +132,6 @@ export const HomeScreen = ({ navigation }: any) => {
             })}
           </View>
         </Card>
-
-        {/* Quick Actions */}
-        <Text style={[Typography.header2, styles.sectionTitle]}>Quick Start</Text>
-        <View style={styles.quickActions}>
-          <TouchableOpacity
-            style={[styles.quickActionCard, { backgroundColor: Colors.primary }]}
-            onPress={() => navigation.navigate('Workout')}
-          >
-            <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-              <Ionicons name="add-circle" size={28} color="#fff" />
-            </View>
-            <Text style={[styles.quickActionText, { color: '#fff' }]}>New Workout</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.quickActionCard}
-            onPress={() => navigation.navigate('Workout')}
-          >
-            <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(245,158,11,0.1)' }]}>
-              <Ionicons name="clipboard-outline" size={28} color="#F59E0B" />
-            </View>
-            <Text style={styles.quickActionText}>My Routines</Text>
-          </TouchableOpacity>
-        </View>
 
         {/* Recent Activity */}
         <Text style={[Typography.header2, styles.sectionTitle]}>Recent Activity</Text>
