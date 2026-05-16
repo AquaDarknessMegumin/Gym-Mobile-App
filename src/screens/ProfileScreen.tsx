@@ -143,10 +143,14 @@ export const ProfileScreen = ({ navigation }: any) => {
               <View key={i} style={styles.barColumn}>
                 <View style={styles.barWrapper}>
                   <View style={[
-                    styles.bar, 
-                    { 
-                      height: `${Math.max((day.value / maxValue) * 100, day.value > 0 ? 8 : 3)}%`,
-                      backgroundColor: day.isToday ? Colors.primary : 'rgba(99,56,171,0.25)',
+                    styles.bar,
+                    {
+                      height: day.value > 0
+                        ? `${Math.max((day.value / maxValue) * 100, 8)}%`
+                        : '4%',
+                      backgroundColor: day.value > 0
+                        ? (day.isToday ? Colors.primary : 'rgba(99,56,171,0.25)')
+                        : '#E5E5EA',
                     }
                   ]} />
                 </View>
@@ -184,6 +188,9 @@ export const ProfileScreen = ({ navigation }: any) => {
                     {new Date(w.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} • {w.duration}min • {w.calories} kcal
                   </Text>
                 </View>
+                <View style={styles.workoutBadge}>
+                  <Text style={styles.workoutBadgeText}>{w.category}</Text>
+                </View>
               </View>
             </Card>
           ))
@@ -207,7 +214,6 @@ const styles = StyleSheet.create({
   settingsBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   scrollContent: { padding: 16, paddingBottom: 40 },
 
-  // Profile Card
   profileCard: { padding: 24, marginBottom: 16, alignItems: 'center' },
   profileTop: { alignItems: 'center', marginBottom: 24 },
   avatar: {
@@ -235,21 +241,20 @@ const styles = StyleSheet.create({
   },
   profileStatValue: { fontSize: 20, fontWeight: 'bold', color: Colors.text },
   profileStatLabel: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
-  profileStatDivider: { width: 1, height: 40, backgroundColor: Colors.border, marginTop: 20 },
+  profileStatDivider: { width: 1, height: 60, backgroundColor: Colors.border },
 
-  // Chart Card
   chartCard: { padding: 20, marginBottom: 24 },
   chartHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  tabsContainer: { 
-    flexDirection: 'row', 
-    backgroundColor: '#F2F2F7', 
-    borderRadius: 10, 
-    padding: 3, 
+  tabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F2F2F7',
+    borderRadius: 10,
+    padding: 3,
     marginBottom: 20,
   },
   tab: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 },
-  tabActive: { 
-    backgroundColor: Colors.surface, 
+  tabActive: {
+    backgroundColor: Colors.surface,
     shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, shadowOffset: { width: 0, height: 1 },
     elevation: 2,
   },
@@ -258,11 +263,10 @@ const styles = StyleSheet.create({
   chartContainer: { flexDirection: 'row', justifyContent: 'space-between', height: 140 },
   barColumn: { flex: 1, alignItems: 'center' },
   barWrapper: { flex: 1, width: '60%', justifyContent: 'flex-end', marginBottom: 6 },
-  bar: { width: '100%', borderRadius: 6, minHeight: 4 },
+  bar: { width: '100%', borderRadius: 6, minHeight: 8 },
   barLabel: { fontSize: 11, color: Colors.textSecondary },
   barValue: { fontSize: 9, color: Colors.textSecondary, marginTop: 2 },
 
-  // History
   sectionTitle: { marginBottom: 16 },
   emptyCard: { alignItems: 'center', padding: 40 },
   historyItem: { marginBottom: 8, padding: 16 },
@@ -273,4 +277,10 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     marginRight: 12,
   },
+  workoutBadge: {
+    backgroundColor: 'rgba(99,56,171,0.1)',
+    paddingHorizontal: 10, paddingVertical: 4,
+    borderRadius: 8,
+  },
+  workoutBadgeText: { fontSize: 12, fontWeight: '600', color: Colors.primary },
 });
