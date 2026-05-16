@@ -19,7 +19,6 @@ export const ProfileScreen = ({ navigation }: any) => {
 
   const [activeTab, setActiveTab] = useState<'duration' | 'volume' | 'calories'>('duration');
 
-  // Get last 7 days data for chart
   const getLast7Days = () => {
     const days = [];
     for (let i = 6; i >= 0; i--) {
@@ -58,15 +57,8 @@ export const ProfileScreen = ({ navigation }: any) => {
     return m > 0 ? `${hrs}h ${m}m` : `${hrs}h`;
   };
 
-  const getTabUnit = () => {
-    if (activeTab === 'duration') return 'min';
-    if (activeTab === 'volume') return '';
-    return 'kcal';
-  };
-
   return (
     <ScreenWrapper style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={{ width: 40 }} />
         <Text style={Typography.header2}>Profile</Text>
@@ -79,7 +71,7 @@ export const ProfileScreen = ({ navigation }: any) => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        
+
         {/* Profile Card */}
         <Card style={styles.profileCard}>
           <View style={styles.profileTop}>
@@ -91,23 +83,32 @@ export const ProfileScreen = ({ navigation }: any) => {
               style={styles.editBtn}
               onPress={() => navigation.navigate('SettingsStack')}
             >
-              <Ionicons name="pencil-outline" size={14} color={Colors.primary} />
+              <Ionicons name="pencil-outline" size={14} color="#fff" />
               <Text style={styles.editBtnText}>Edit Profile</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.profileStats}>
             <View style={styles.profileStatItem}>
+              <View style={[styles.statIcon, { backgroundColor: 'rgba(99,56,171,0.1)' }]}>
+                <Ionicons name="barbell-outline" size={18} color={Colors.primary} />
+              </View>
               <Text style={styles.profileStatValue}>{totalWorkouts}</Text>
               <Text style={styles.profileStatLabel}>Workouts</Text>
             </View>
             <View style={styles.profileStatDivider} />
             <View style={styles.profileStatItem}>
+              <View style={[styles.statIcon, { backgroundColor: 'rgba(59,130,246,0.1)' }]}>
+                <Ionicons name="time-outline" size={18} color="#3B82F6" />
+              </View>
               <Text style={styles.profileStatValue}>{formatDuration(totalDuration)}</Text>
               <Text style={styles.profileStatLabel}>Total Time</Text>
             </View>
             <View style={styles.profileStatDivider} />
             <View style={styles.profileStatItem}>
+              <View style={[styles.statIcon, { backgroundColor: 'rgba(245,158,11,0.1)' }]}>
+                <Ionicons name="flame-outline" size={18} color="#F59E0B" />
+              </View>
               <Text style={styles.profileStatValue}>{totalCalories.toLocaleString()}</Text>
               <Text style={styles.profileStatLabel}>Calories</Text>
             </View>
@@ -123,7 +124,6 @@ export const ProfileScreen = ({ navigation }: any) => {
             </Text>
           </View>
 
-          {/* Tabs */}
           <View style={styles.tabsContainer}>
             {(['duration', 'volume', 'calories'] as const).map((tab) => (
               <TouchableOpacity 
@@ -138,7 +138,6 @@ export const ProfileScreen = ({ navigation }: any) => {
             ))}
           </View>
 
-          {/* Bar Chart */}
           <View style={styles.chartContainer}>
             {chartData.map((day, i) => (
               <View key={i} style={styles.barColumn}>
@@ -147,7 +146,7 @@ export const ProfileScreen = ({ navigation }: any) => {
                     styles.bar, 
                     { 
                       height: `${Math.max((day.value / maxValue) * 100, day.value > 0 ? 8 : 3)}%`,
-                      backgroundColor: day.isToday ? Colors.primary : 'rgba(124, 58, 237, 0.3)',
+                      backgroundColor: day.isToday ? Colors.primary : 'rgba(99,56,171,0.25)',
                     }
                   ]} />
                 </View>
@@ -164,7 +163,7 @@ export const ProfileScreen = ({ navigation }: any) => {
           </View>
         </Card>
 
-        {/* Recent Workouts */}
+        {/* Workout History */}
         <Text style={[Typography.header2, styles.sectionTitle]}>Workout History</Text>
         
         {workouts.length === 0 ? (
@@ -222,16 +221,21 @@ const styles = StyleSheet.create({
   editBtn: {
     flexDirection: 'row', alignItems: 'center',
     marginTop: 8,
-    paddingHorizontal: 16, paddingVertical: 6,
+    paddingHorizontal: 16, paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(124, 58, 237, 0.08)',
+    backgroundColor: Colors.primary,
   },
-  editBtnText: { fontSize: 13, color: Colors.primary, fontWeight: '600', marginLeft: 4 },
+  editBtnText: { fontSize: 13, color: '#fff', fontWeight: '600', marginLeft: 4 },
   profileStats: { flexDirection: 'row', width: '100%', justifyContent: 'space-around' },
   profileStatItem: { alignItems: 'center' },
+  statIcon: {
+    width: 36, height: 36, borderRadius: 18,
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 6,
+  },
   profileStatValue: { fontSize: 20, fontWeight: 'bold', color: Colors.text },
   profileStatLabel: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
-  profileStatDivider: { width: 1, height: 40, backgroundColor: Colors.border },
+  profileStatDivider: { width: 1, height: 40, backgroundColor: Colors.border, marginTop: 20 },
 
   // Chart Card
   chartCard: { padding: 20, marginBottom: 24 },
