@@ -18,7 +18,7 @@ const getRoutineStyle = (title: string) => {
   const t = title.toLowerCase();
   if (t.includes('push'))    return { color: '#6338AB', bg: 'rgba(99,56,171,0.1)',   icon: 'arrow-up-outline',      label: 'Push'   };
   if (t.includes('pull'))    return { color: '#3B82F6', bg: 'rgba(59,130,246,0.1)',  icon: 'arrow-down-outline',    label: 'Pull'   };
-  if (t.includes('leg'))     return { color: '#22C55E', bg: 'rgba(34,197,94,0.1)',   icon: 'walk-outline',          label: 'Legs'   };
+  if (t.includes('leg'))     return { color: '#0891B2', bg: 'rgba(8,145,178,0.1)',   icon: 'walk-outline',          label: 'Legs'   };
   if (t.includes('abs'))     return { color: '#F59E0B', bg: 'rgba(245,158,11,0.1)',  icon: 'flame-outline',         label: 'Abs'    };
   if (t.includes('cardio'))  return { color: '#EF4444', bg: 'rgba(239,68,68,0.1)',   icon: 'heart-outline',         label: 'Cardio' };
   return                            { color: Colors.primary, bg: 'rgba(99,56,171,0.1)', icon: 'barbell-outline',   label: ''       };
