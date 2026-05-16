@@ -26,7 +26,6 @@ export const WorkoutScreen = ({ navigation }: any) => {
     }
   };
 
-  // Helper to format duration
   const formatDuration = (mins: number) => {
     if (mins < 60) return `${mins}m`;
     const hrs = Math.floor(mins / 60);
@@ -41,16 +40,13 @@ export const WorkoutScreen = ({ navigation }: any) => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        
-        {/* Weekly Goals Card */}
+
         <Card style={styles.goalsCard}>
           <View style={styles.goalsHeader}>
             <Text style={Typography.header2}>Weekly goals</Text>
             <Ionicons name="ellipsis-vertical" size={20} color={Colors.textSecondary} />
           </View>
-          
           <ProgressRing current={weeklyGoals.calories} total={10000} label="Calories" />
-          
           <View style={styles.goalsStats}>
             <View style={styles.goalStatCol}>
               <Text style={Typography.bodySecondary}>Workouts</Text>
@@ -63,22 +59,27 @@ export const WorkoutScreen = ({ navigation }: any) => {
           </View>
         </Card>
 
-        {/* Routines Section */}
         <Text style={[Typography.header2, styles.sectionTitle]}>Routines</Text>
-        
+
         <View style={styles.routinesActions}>
-          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('CreateRoutine')}>
-            <Ionicons name="clipboard-outline" size={16} color={Colors.text} style={styles.actionIcon} />
-            <Text style={Typography.body}>New routine</Text>
+          <TouchableOpacity
+            style={[styles.actionBtn, { backgroundColor: Colors.primary, borderColor: Colors.primary }]}
+            onPress={() => navigation.navigate('CreateRoutine')}
+          >
+            <Ionicons name="clipboard-outline" size={16} color="#fff" style={styles.actionIcon} />
+            <Text style={[Typography.body, { color: '#fff' }]}>New routine</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('ExerciseSelection', { mode: 'create', category: 'Explore', fromCreateRoutine: false })}>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate('ExerciseSelection', { mode: 'create', category: 'Explore', fromCreateRoutine: false })}
+          >
             <Ionicons name="search-outline" size={16} color={Colors.text} style={styles.actionIcon} />
             <Text style={Typography.body}>Explore</Text>
           </TouchableOpacity>
         </View>
 
         {routines.map(r => (
-          <RoutineCard 
+          <RoutineCard
             key={r.id}
             title={r.title}
             description={r.description}
@@ -90,7 +91,7 @@ export const WorkoutScreen = ({ navigation }: any) => {
 
       </ScrollView>
 
-      <AlertModal 
+      <AlertModal
         visible={!!routineToDelete}
         title="Delete Routine"
         message="Are you sure you want to delete this routine? This action cannot be undone."
