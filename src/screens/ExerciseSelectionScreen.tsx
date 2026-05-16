@@ -28,7 +28,23 @@ const EXERCISE_DICTIONARY: Record<string, { id: string; name: string }[]> = {
     { id: 'l3', name: 'Leg Press' },
     { id: 'l4', name: 'Calf Raises' },
     { id: 'l5', name: 'Leg Extensions' },
-  ]
+  ],
+  Abs: [
+    { id: 'a1', name: 'Plank' },
+    { id: 'a2', name: 'Crunches' },
+    { id: 'a3', name: 'Leg Raises' },
+    { id: 'a4', name: 'Russian Twists' },
+    { id: 'a5', name: 'Bicycle Kicks' },
+    { id: 'a6', name: 'Cable Crunches' },
+  ],
+  Cardio: [
+    { id: 'c1', name: 'Treadmill Run' },
+    { id: 'c2', name: 'Jump Rope' },
+    { id: 'c3', name: 'Cycling' },
+    { id: 'c4', name: 'Rowing Machine' },
+    { id: 'c5', name: 'Stair Climber' },
+    { id: 'c6', name: 'Burpees' },
+  ],
 };
 
 export const ExerciseSelectionScreen = ({ route, navigation }: any) => {
