@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, ScrollView, Modal, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
 import { ScreenWrapper } from '../components/ScreenWrapper';
@@ -14,9 +14,26 @@ export const SignUpScreen = ({ navigation }: any) => {
   const [password, setPassword] = useState('');
   const authContext = useContext(AuthContext);
 
+  // If the context is somehow undefined (should never happen in production), bail out gracefully
+  if (!authContext) {
+    return null;
+  }
+
+  const {
+    register,
+    isRegistering = false,
+    cooldown = 0,
+    registrationModalVisible = false,
+    hideRegistrationModal,
+  } = authContext;
+
   const handleSignUp = () => {
+    if (cooldown > 0) {
+      // Optional: you could show a toast here
+      return;
+    }
     if (email && password && username) {
-      authContext?.register(email, username);
+      register?.(email, username, password);
     }
   };
 
@@ -71,6 +88,7 @@ export const SignUpScreen = ({ navigation }: any) => {
             title="Create Account" 
             onPress={handleSignUp} 
             style={styles.button} 
+            disabled={isRegistering || cooldown > 0}
           />
         </View>
 
@@ -83,7 +101,24 @@ export const SignUpScreen = ({ navigation }: any) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </ScreenWrapper>
+      {/* Registration success modal */}
+      <Modal
+        transparent={true}
+        visible={registrationModalVisible}
+        animationType="fade"
+        onRequestClose={hideRegistrationModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Check Your Email</Text>
+            <Text style={styles.modalMessage}>A confirmation link has been sent to your email. Please confirm before logging in.</Text>
+            <Pressable onPress={hideRegistrationModal} style={styles.modalButton}>
+              <Text style={styles.modalButtonText}>OK</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+      </ScreenWrapper>
   );
 };
 
@@ -104,5 +139,40 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 40,
     marginBottom: 20,
+  },
+  // modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 24,
+    borderRadius: 12,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  modalMessage: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

@@ -15,7 +15,7 @@ export const SignInScreen = ({ navigation }: any) => {
 
   const handleSignIn = () => {
     if (email && password) {
-      authContext?.login(email);
+      authContext?.login(email, password);
     }
   };
 

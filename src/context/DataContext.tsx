@@ -1,5 +1,6 @@
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
+import { supabase } from '../lib/supabase';
+import { AuthContext } from './AuthContext';
 
 export type Workout = {
   id: string;
@@ -40,24 +41,15 @@ type DataContextType = {
 export const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
+  const { user } = useContext(AuthContext) || { user: null };
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [routines, setRoutines] = useState<SavedRoutine[]>([]);
   const [weeklyGoals, setWeeklyGoals] = useState<WeeklyGoals>({ calories: 0, workouts: 0, duration: 0, volume: 0 });
   const [isLoading, setIsLoading] = useState(true);
 
-  // ... (useEffect and loadData logic)
-
-  const updateRoutine = async (id: string, routineUpdates: Partial<SavedRoutine>) => {
-    const updatedRoutines = routines.map(r => 
-      r.id === id ? { ...r, ...routineUpdates } : r
-    );
-    setRoutines(updatedRoutines);
-    await AsyncStorage.setItem('routines', JSON.stringify(updatedRoutines));
-  };
-
   useEffect(() => {
     loadData();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     calculateWeeklyGoals(workouts);
@@ -86,68 +78,236 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const loadData = async () => {
-    try {
-      const storedWorkouts = await AsyncStorage.getItem('workouts_v2');
-      if (storedWorkouts) {
-        setWorkouts(JSON.parse(storedWorkouts));
-      } else {
-        const dummyData: Workout[] = [
-          { id: 'w1', title: 'Push Day', category: 'Push', duration: 45, volume: 5500, calories: 375, date: new Date().toISOString() },
-        ];
-        setWorkouts(dummyData);
-        await AsyncStorage.setItem('workouts_v2', JSON.stringify(dummyData));
-      }
+    if (!user) {
+      setWorkouts([]);
+      setRoutines([]);
+      setIsLoading(false);
+      return;
+    }
 
-      const storedRoutines = await AsyncStorage.getItem('routines');
-      if (storedRoutines) {
-        setRoutines(JSON.parse(storedRoutines));
-      } else {
-        const defaultRoutines: SavedRoutine[] = [
-          { id: 'r1', title: 'Push routine', description: 'Warm up, bench press, incline bench press, seated shoulder press, chest fly, tricep pushdown', exercises: [] },
-          { id: 'r2', title: 'Pull routine', description: 'Warm up, pull-ups, barbell rows, lat pulldowns, face pulls, bicep curls', exercises: [] },
-          { id: 'r3', title: 'Legs routine', description: 'Warm up, squat, split squats, Romanian deadlift, calf raises', exercises: [] }
-        ];
-        setRoutines(defaultRoutines);
-        await AsyncStorage.setItem('routines', JSON.stringify(defaultRoutines));
-      }
+    try {
+      setIsLoading(true);
+
+      // 1. Fetch Workouts from Supabase
+      const { data: dbWorkouts, error: wError } = await supabase
+        .from('workouts')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false });
+
+      if (wError) throw wError;
+
+      const formattedWorkouts: Workout[] = (dbWorkouts || []).map((w: any) => ({
+        id: w.id.toString(),
+        title: w.title,
+        category: w.category,
+        duration: w.duration,
+        volume: w.volume,
+        calories: w.calories,
+        date: w.date,
+      }));
+
+      // 2. Fetch Routines from Supabase (with nested Exercises)
+      const { data: dbRoutines, error: rError } = await supabase
+        .from('routines')
+        .select(`
+          id,
+          title,
+          description,
+          routine_exercises (
+            sets_count,
+            reps_count,
+            order_index,
+            exercises (
+              id,
+              name,
+              category
+            )
+          )
+        `)
+        .eq('user_id', user.id);
+
+      if (rError) throw rError;
+
+      const formattedRoutines: SavedRoutine[] = (dbRoutines || []).map((r: any) => ({
+        id: r.id.toString(),
+        title: r.title,
+        description: r.description,
+        exercises: (r.routine_exercises || [])
+          .sort((a: any, b: any) => a.order_index - b.order_index)
+          .map((re: any) => ({
+            id: re.exercises.id,
+            name: re.exercises.name,
+            category: re.exercises.category,
+            sets: re.sets_count.toString(),
+            reps: re.reps_count.toString(),
+          })),
+      }));
+
+      setWorkouts(formattedWorkouts);
+      setRoutines(formattedRoutines);
     } catch (e) {
-      console.error('Failed to load data', e);
+      console.error('Failed to load data from Supabase', e);
     } finally {
       setIsLoading(false);
     }
   };
 
   const addWorkout = async (workout: Omit<Workout, 'id' | 'date'>) => {
-    const newWorkout: Workout = {
-      ...workout,
-      id: Math.random().toString(36).substr(2, 9),
-      date: new Date().toISOString(),
-    };
-    const updatedWorkouts = [newWorkout, ...workouts];
-    setWorkouts(updatedWorkouts);
-    await AsyncStorage.setItem('workouts_v2', JSON.stringify(updatedWorkouts));
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('workouts')
+        .insert({
+          user_id: user.id,
+          title: workout.title,
+          category: workout.category,
+          duration: workout.duration,
+          volume: workout.volume,
+          calories: workout.calories,
+          date: new Date().toISOString(),
+        });
+
+      if (error) throw error;
+      await loadData();
+    } catch (e) {
+      console.error('Failed to add workout to Supabase', e);
+      throw e;
+    }
   };
 
   const deleteWorkout = async (id: string) => {
-    const updatedWorkouts = workouts.filter(w => w.id !== id);
-    setWorkouts(updatedWorkouts);
-    await AsyncStorage.setItem('workouts_v2', JSON.stringify(updatedWorkouts));
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('workouts')
+        .delete()
+        .eq('id', parseInt(id))
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      await loadData();
+    } catch (e) {
+      console.error('Failed to delete workout from Supabase', e);
+      throw e;
+    }
   };
 
   const addRoutine = async (routine: Omit<SavedRoutine, 'id'>) => {
-    const newRoutine: SavedRoutine = {
-      ...routine,
-      id: Math.random().toString(36).substr(2, 9),
-    };
-    const updatedRoutines = [newRoutine, ...routines];
-    setRoutines(updatedRoutines);
-    await AsyncStorage.setItem('routines', JSON.stringify(updatedRoutines));
+    if (!user) return;
+
+    try {
+      // 1. Insert routine metadata
+      const { data: newRoutine, error: rError } = await supabase
+        .from('routines')
+        .insert({
+          user_id: user.id,
+          title: routine.title,
+          description: routine.description || '',
+        })
+        .select('id')
+        .single();
+
+      if (rError) throw rError;
+
+      // 2. Insert joint routine_exercises records
+      if (routine.exercises && routine.exercises.length > 0) {
+        const routineId = newRoutine.id;
+        const exerciseRecords = routine.exercises.map((ex, index) => ({
+          routine_id: routineId,
+          exercise_id: ex.id,
+          sets_count: parseInt(ex.sets || '3'),
+          reps_count: parseInt(ex.reps || '10'),
+          order_index: index,
+        }));
+
+        const { error: reError } = await supabase
+          .from('routine_exercises')
+          .insert(exerciseRecords);
+
+        if (reError) throw reError;
+      }
+
+      await loadData();
+    } catch (e) {
+      console.error('Failed to add routine to Supabase', e);
+      throw e;
+    }
+  };
+
+  const updateRoutine = async (id: string, routineUpdates: Partial<SavedRoutine>) => {
+    if (!user) return;
+
+    const routineId = parseInt(id);
+
+    try {
+      // 1. Update routine metadata
+      if (routineUpdates.title !== undefined || routineUpdates.description !== undefined) {
+        const { error: rError } = await supabase
+          .from('routines')
+          .update({
+            title: routineUpdates.title,
+            description: routineUpdates.description,
+          })
+          .eq('id', routineId)
+          .eq('user_id', user.id);
+
+        if (rError) throw rError;
+      }
+
+      // 2. Update exercises mapping if changed
+      if (routineUpdates.exercises) {
+        // Delete all old exercises inside the routine
+        const { error: delError } = await supabase
+          .from('routine_exercises')
+          .delete()
+          .eq('routine_id', routineId);
+
+        if (delError) throw delError;
+
+        // Insert new exercises inside the routine
+        if (routineUpdates.exercises.length > 0) {
+          const exerciseRecords = routineUpdates.exercises.map((ex, index) => ({
+            routine_id: routineId,
+            exercise_id: ex.id,
+            sets_count: parseInt(ex.sets || '3'),
+            reps_count: parseInt(ex.reps || '10'),
+            order_index: index,
+          }));
+
+          const { error: insError } = await supabase
+            .from('routine_exercises')
+            .insert(exerciseRecords);
+
+          if (insError) throw insError;
+        }
+      }
+
+      await loadData();
+    } catch (e) {
+      console.error('Failed to update routine in Supabase', e);
+      throw e;
+    }
   };
 
   const deleteRoutine = async (id: string) => {
-    const updatedRoutines = routines.filter(r => r.id !== id);
-    setRoutines(updatedRoutines);
-    await AsyncStorage.setItem('routines', JSON.stringify(updatedRoutines));
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('routines')
+        .delete()
+        .eq('id', parseInt(id))
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      await loadData();
+    } catch (e) {
+      console.error('Failed to delete routine from Supabase', e);
+      throw e;
+    }
   };
 
   return (
