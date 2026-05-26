@@ -15,6 +15,8 @@ module.exports = function (api) {
                     allowUndefined: true,
                 },
             ],
+            // Keep your dotenv plugin above, and add the dynamic import fix right below it:
+            '@babel/plugin-transform-dynamic-import'
         ],
     };
 };
